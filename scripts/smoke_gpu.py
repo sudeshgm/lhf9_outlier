@@ -7,6 +7,7 @@ Uses data/manifest.json. Downloads images on the fly if missing.
 import json
 import os
 import sys
+import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -18,12 +19,20 @@ import torchvision.transforms as T
 sys.path.insert(0, str(Path(__file__).parent))
 from layer_extract import extract_pair_separation
 
-try:
-    from dust3r.model import AsymmetricCroCo3DStereo
-except ImportError:
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/naver/dust3r.git"])
-    from dust3r.model import AsymmetricCroCo3DStereo
+def ensure_dust3r():
+    try:
+        from dust3r.model import AsymmetricCroCo3DStereo
+        return AsymmetricCroCo3DStereo
+    except ImportError:
+        print("dust3r not found; cloning and installing...")
+        dust3r_dir = Path("/tmp/dust3r")
+        if not dust3r_dir.exists():
+            subprocess.check_call(["git", "clone", "--recursive", "https://github.com/naver/dust3r", str(dust3r_dir)])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "-r", str(dust3r_dir / "requirements.txt")])
+        # Add to path so import works
+        sys.path.insert(0, str(dust3r_dir))
+        from dust3r.model import AsymmetricCroCo3DStereo
+        return AsymmetricCroCo3DStereo
 
 REPO_ID = "naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -53,6 +62,8 @@ def load_image(path: Path, size: int = 512) -> torch.Tensor:
     return t.unsqueeze(0)
 
 def main():
+    AsymmetricCroCo3DStereo = ensure_dust3r()
+
     manifest_path = Path("data/manifest.json")
     if not manifest_path.exists():
         print("BLOCKER: data/manifest.json missing")
