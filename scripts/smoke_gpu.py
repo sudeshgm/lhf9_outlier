@@ -42,9 +42,10 @@ def load_image(path: Path, size: int = 512) -> torch.Tensor:
     t = (t - 0.5) / 0.5
     return t.unsqueeze(0)
 
-def run_pair(model, img_a, img_b, instance_a="a", instance_b="b"):
-    view_a = {"img": img_a.to(DEVICE), "instance": instance_a}
-    view_b = {"img": img_b.to(DEVICE), "instance": instance_b}
+def run_pair(model, img_a, img_b):
+    # instance length 1 triggers the non-symmetrized special case
+    view_a = {"img": img_a.to(DEVICE), "instance": [0]}
+    view_b = {"img": img_b.to(DEVICE), "instance": [0]}
     captured = {}
     handles = []
     def make_hook(idx):
@@ -79,8 +80,8 @@ def main():
     distractor = load_image(distractor_path)
 
     print("Running pairs...")
-    feats_cc = run_pair(model, clean1, clean2, "c1", "c2")
-    feats_cd = run_pair(model, clean1, distractor, "c1", "d")
+    feats_cc = run_pair(model, clean1, clean2)
+    feats_cd = run_pair(model, clean1, distractor)
 
     layers = sorted(feats_cc.keys())
     seps = []
