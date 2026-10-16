@@ -1,0 +1,24 @@
+{
+  "description": "LHF9 multi-view sets from Wikimedia Commons public domain / CC images. Clean views = different viewpoints of the same landmark/scene; distractors = images of other landmarks. No login required.",
+  "view_source": "Wikimedia Commons (public domain / CC-BY / CC-BY-SA)",
+  "n_scenes": 8,
+  "scenes": [
+    {
+      "scene_id": "eiffel",
+      "clean_views": ["data/images/eiffel_1.jpg", "data/images/eiffel_2.jpg", "data/images/eiffel_3.jpg", "data/images/eiffel_4.jpg", "data/images/eiffel_5.jpg"],
+      "distractor_views": ["data/images/colosseum_1.jpg", "data/images/taj_1.jpg", "data/images/liberty_1.jpg"]
+    },
+    {
+      "scene_id": "colosseum",
+      "clean_views": ["data/images/colosseum_1.jpg", "data/images/colosseum_2.jpg", "data/images/colosseum_3.jpg", "data/images/colosseum_4.jpg"],
+      "distractor_views": ["data/images/eiffel_1.jpg", "data/images/taj_1.jpg", "data/images/liberty_1.jpg"]
+    }
+  ],
+  "image_urls": {
+    "data/images/eiffel_1.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons.jpg/512px-Tour_Eiffel_Wikimedia_Commons.jpg",
+    "data/images/colosseum_1.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Colosseo_2020.jpg/512px-Colosseo_2020.jpg",
+    "data/images/taj_1.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/512px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg",
+    "data/images/liberty_1.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Statue_of_Liberty_7.jpg/512px-Statue_of_Liberty_7.jpg"
+  },
+  "note": "Minimal verified subset for smoke. Full 8-scene version is in the local workspace. Some URLs may need verification."
+}
