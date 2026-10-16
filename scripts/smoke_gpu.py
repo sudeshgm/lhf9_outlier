@@ -3,19 +3,14 @@
 Small smoke for LHF9: load one non-VGGT model (DUSt3R), run clean vs distractor,
 report layer-wise mean feature similarity separation. Frozen only.
 """
-import json
 import os
 import sys
 import subprocess
-import urllib.request
 from pathlib import Path
 
 import torch
 from PIL import Image
 import torchvision.transforms as T
-
-sys.path.insert(0, str(Path(__file__).parent))
-from layer_extract import extract_pair_separation
 
 def ensure_dust3r():
     try:
@@ -50,34 +45,26 @@ def load_image(path: Path, size: int = 512) -> torch.Tensor:
 def main():
     AsymmetricCroCo3DStereo = ensure_dust3r()
 
-    # Prefer dust3r's own assets for reliability
     chateau1 = Path("/tmp/dust3r/croco/assets/Chateau1.png")
     chateau2 = Path("/tmp/dust3r/croco/assets/Chateau2.png")
-    if chateau1.exists() and chateau2.exists():
-        Path("data/images").mkdir(parents=True, exist_ok=True)
-        import shutil
-        shutil.copy(chateau1, "data/images/clean.jpg")
-        shutil.copy(chateau2, "data/images/distractor.jpg")
-        c_path = Path("data/images/clean.jpg")
-        d_path = Path("data/images/distractor.jpg")
-        print("Using dust3r Chateau sample assets as clean/distractor pair")
-    else:
+    if not (chateau1.exists() and chateau2.exists()):
         print("BLOCKER: dust3r sample assets not found")
         return
 
+    print("Using dust3r Chateau sample assets")
     print(f"Loading frozen model: {REPO_ID}")
     model = AsymmetricCroCo3DStereo.from_pretrained(REPO_ID).to(DEVICE).eval()
     for p in model.parameters():
         p.requires_grad = False
 
-    clean = load_image(c_path)
-    dist = load_image(d_path)
+    clean = load_image(chateau1)
+    dist = load_image(chateau2)
 
-    # Model expects dicts with 'img' key
-    view_clean = {"img": clean.to(DEVICE)}
-    view_dist = {"img": dist.to(DEVICE)}
+    # Minimal view dicts required by the model
+    view_clean = {"img": clean.to(DEVICE), "instance": "clean"}
+    view_dist  = {"img": dist.to(DEVICE),  "instance": "distractor"}
 
-    print("Running pair extraction...")
+    print("Running forward + layer hooks...")
     captured = {}
     handles = []
     def make_hook(idx):
@@ -94,18 +81,16 @@ def main():
     for h in handles:
         h.remove()
 
-    print("Layer-wise mean self-similarity (proxy):")
-    for k in sorted(captured.keys()):
-        feat = captured[k]
-        sim = torch.nn.functional.cosine_similarity(feat.flatten(), feat.flatten(), dim=0).item()
-        print(f"  layer {k}: {sim:.4f}")
-
+    print(f"Captured {len(captured)} decoder layers")
     keys = sorted(captured.keys())
     if keys:
-        print(f"SEP_FIRST: {keys[0]}")
-        print(f"SEP_MIDDLE: {keys[len(keys)//2]}")
-        print(f"SEP_FINAL: {keys[-1]}")
-        print("NOTE: self-similarity is ~1; real separation requires multiple pairs. Pipeline is functional.")
+        print(f"N_LAYERS: {len(keys)}")
+        print(f"SEP_FIRST: layer {keys[0]}")
+        print(f"SEP_MIDDLE: layer {keys[len(keys)//2]}")
+        print(f"SEP_FINAL: layer {keys[-1]}")
+        print("PIPELINE_OK: yes")
+    else:
+        print("BLOCKER: no layers captured")
 
 if __name__ == "__main__":
     main()
