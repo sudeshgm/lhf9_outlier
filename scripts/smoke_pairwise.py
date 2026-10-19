@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pairwise view-level cosine. Robust reshape.
+Pairwise view-level cosine. Handle batch dim.
 """
 import os, sys, subprocess
 from pathlib import Path
@@ -60,9 +60,13 @@ def main():
         feat = captured[L]
         if feat.dim() != 3:
             continue
+        if feat.shape[0] > 1:
+            feat = feat[0:1]
         B, N, C = feat.shape
         usable = (N // n_views) * n_views
-        feat = feat[:, :usable, :].view(n_views, usable // n_views, C)
+        if usable == 0:
+            continue
+        feat = feat[:, :usable, :].reshape(n_views, usable // n_views, C)
         view_feats = F.normalize(feat.mean(dim=1), dim=-1)
         cc = [(view_feats[i] * view_feats[j]).sum().item() for i in range(6) for j in range(i+1, 6)]
         cd = [(view_feats[i] * view_feats[j]).sum().item() for i in range(6) for j in range(6, 8)]
