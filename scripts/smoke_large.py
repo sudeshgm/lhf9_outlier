@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LHF9 recovery: larger set on VGGT + DUSt3R.
-Mean-pool over sequence so feature tensors have matching shape.
+Mean-pool over all sequence and token dimensions so shapes always match.
 """
 import os, sys, subprocess
 from pathlib import Path
@@ -40,8 +40,9 @@ def load_image(path, size=518):
 def mean_pooled_sep(feats_a, feats_b):
     seps = []
     for L in sorted(feats_a.keys()):
-        a = feats_a[L].mean(dim=0, keepdim=True)
-        b = feats_b[L].mean(dim=0, keepdim=True)
+        # collapse every dimension except the feature dim
+        a = feats_a[L].reshape(1, -1, feats_a[L].shape[-1]).mean(dim=1)
+        b = feats_b[L].reshape(1, -1, feats_b[L].shape[-1]).mean(dim=1)
         sim = F.cosine_similarity(a, b, dim=-1).mean().item()
         seps.append(round(1.0 - sim, 4))
     return seps
