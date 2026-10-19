@@ -36,7 +36,7 @@ def load_image(path: Path, size: int = 518) -> torch.Tensor:
     nw, nh = int(round(w * scale)), int(round(h * scale))
     nw = (nw // 14) * 14
     nh = (nh // 14) * 14
-    img = img.resize((nw, nh), Image.BICUBIC)
+    img = img.resize((nw, nh), Image.Resampling.BICUBIC)
     t = T.ToTensor()(img)
     mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
     std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
@@ -44,7 +44,8 @@ def load_image(path: Path, size: int = 518) -> torch.Tensor:
     return t.unsqueeze(0)
 
 def run_pair(model, img_a, img_b):
-    imgs = torch.cat([img_a, img_b], dim=0).to(DEVICE)
+    # Pi3 expects [B, N, C, H, W]
+    imgs = torch.stack([img_a, img_b], dim=0).unsqueeze(0).to(DEVICE)  # [1, 2, 3, H, W]
     captured = {}
     handles = []
     decoder = getattr(model, "point_decoder", None) or getattr(model, "camera_decoder", None)
