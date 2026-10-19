@@ -13,13 +13,12 @@
 | facebook/VGGT-1B | [0.0282, 0.0611, 0.0612, 0.0642, 0.0284, 0.0596, 0.0565, 0.0582, 0.0575, 0.0469, 0.041, 0.0408, 0.0391, 0.0315, 0.023, 0.0448, 0.0422, 0.0314, 0.0229, 0.024, 0.0412, 0.0412, 0.0365, 0.0351, 0.0484, 0.0555, 0.0612, 0.0652, 0.0524, 0.0578, 0.0571, 0.0569, 0.0517, 0.0427, 0.042, 0.0365, 0.036, 0.0237, 0.0309, 0.0336, 0.0399, 0.0271, 0.0226, 0.0372, 0.0451, 0.036, 0.0288, 0.042] | no | no |
 | naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt | [0.0634, 0.1046, 0.1022, 0.109, 0.0957, 0.1046, 0.1034, 0.1062, 0.1127, 0.0678, 0.0581, 0.0571] | no | no |
 
-## Attention-mass attempt (same larger set)
-- SCORE_METHOD: mean attention mass on the distractor view (pairwise clean-distractor forward)
-- VGGT_SEP_BY_LAYER: [] (empty — blocks do not return attention weights in the forward output)
-- VGGT_MONOTONIC: yes (vacuous)
+## Forced attention-mass (same larger set, monkey-patched Attention.forward)
+- SCORE_METHOD: mean attention mass on distractor view (forced explicit attn via monkey-patch)
+- VGGT_SEP_BY_LAYER: [0.0003, 0.0003, 0.0004, 0.0004, 0.0004, 0.0003, 0.3352, 0.6508, 0.1719, 0.0011, 0.0013, 0.0012, 0.0021, 0.0017, 0.0015, 0.0058, 0.0046, 0.0024, 0.0139, 0.0028, 0.0003, 0.0009, 0.0005, 0.0006, 0.0047, 0.0044, 0.0023, 0.0027, 0.0028, 0.0028, 0.0012, 0.0008, 0.0008, 0.0013, 0.0011, 0.0009, 0.0007, 0.0004, 0.0007, 0.001, 0.0007, 0.0009, 0.0016, 0.0021, 0.002, 0.002, 0.0029, 0.003, 0.0024, 0.0028, 0.0038, 0.0038, 0.0026, 0.002, 0.0024, 0.0022, 0.0026, 0.0032, 0.0011, 0.002, 0.0045, 0.002, 0.0045, 0.0026, 0.0032, 0.0019, 0.0061, 0.0044, 0.0075, 0.0015, 0.0004, 0.2241, 0.0009, 0.0009, 0.0007, 0.0006]
+- VGGT_MONOTONIC: no
 - VGGT_PEAKS_AT_FINAL: no
-- NONVGGT: skipped
+- EXTRACTION_OK: yes
 
 ## Notes
-- Feature-cosine separation (both set sizes) did not show monotonic final-layer growth on VGGT or DUSt3R.
-- Attention weights are not exposed by the default forward hooks on these models.
+- Feature-cosine and forced attention-mass both failed to show monotonic final-layer separation on VGGT under the locked protocol.
