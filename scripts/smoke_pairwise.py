@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Pairwise view-level cosine separation (clean-clean vs clean-distractor).
-No global mean-pool of the full feature map.
+Pairwise view-level cosine. Robust reshape.
 """
 import os, sys, subprocess
 from pathlib import Path
@@ -24,9 +23,6 @@ def load_image(path, size=518):
 
 def main():
     base = Path("/tmp/lhf9_views")
-    if not (base / "clean").exists():
-        print("BLOCKER: views not found")
-        return
     cp = sorted((base / "clean").glob("*.jpg"))[:6]
     dp = sorted((base / "dist").glob("*.jpg"))[:2]
 
@@ -59,18 +55,17 @@ def main():
     for h in handles: h.remove()
 
     seps = []
-    n_clean = 6
+    n_views = 8
     for L in sorted(captured.keys()):
         feat = captured[L]
-        if feat.dim() == 3:
-            B, N, C = feat.shape
-            tokens_per = N // (n_clean + 2)
-            feat = feat.view(n_clean + 2, tokens_per, C)
-        else:
-            feat = feat.mean(dim=1)
+        if feat.dim() != 3:
+            continue
+        B, N, C = feat.shape
+        usable = (N // n_views) * n_views
+        feat = feat[:, :usable, :].view(n_views, usable // n_views, C)
         view_feats = F.normalize(feat.mean(dim=1), dim=-1)
-        cc = [(view_feats[i] * view_feats[j]).sum().item() for i in range(n_clean) for j in range(i+1, n_clean)]
-        cd = [(view_feats[i] * view_feats[j]).sum().item() for i in range(n_clean) for j in range(n_clean, n_clean+2)]
+        cc = [(view_feats[i] * view_feats[j]).sum().item() for i in range(6) for j in range(i+1, 6)]
+        cd = [(view_feats[i] * view_feats[j]).sum().item() for i in range(6) for j in range(6, 8)]
         cc_mean = sum(cc)/len(cc) if cc else 0
         cd_mean = sum(cd)/len(cd) if cd else 0
         seps.append(round(cc_mean - cd_mean, 4))
