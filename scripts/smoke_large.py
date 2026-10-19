@@ -107,8 +107,8 @@ def run_dust3r(clean_paths, dist_paths):
         for h in handles: h.remove()
         return captured
 
-    ct = [load_image(p) for p in clean_paths]
-    dt = [load_image(p) for p in dist_paths]
+    ct = [load_image(p, size=512) for p in clean_paths]
+    dt = [load_image(p, size=512) for p in dist_paths]
     seps_sum, n = None, 0
     for i in range(min(3, len(ct)-1)):
         seps = mean_pooled_sep(run_pair(ct[0], ct[i+1]), run_pair(ct[0], dt[i % len(dt)]))
