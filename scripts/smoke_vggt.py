@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-LHF9 positive control: frozen VGGT on Chateau clean vs distractor.
-Same separation metric.
+LHF9 positive control: frozen VGGT.
+Avoids pip install of requirements (prevents torch/cudnn conflict).
 """
 import os
 import sys
@@ -17,11 +17,10 @@ def ensure_vggt():
         from vggt.models.vggt import VGGT
         return VGGT
     except ImportError:
-        print("vggt not found; cloning...")
+        print("vggt not found; cloning (no pip install)...")
         vggt_dir = Path("/tmp/vggt")
         if not vggt_dir.exists():
             subprocess.check_call(["git", "clone", "https://github.com/facebookresearch/vggt", str(vggt_dir)])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "-r", str(vggt_dir / "requirements.txt")])
         sys.path.insert(0, str(vggt_dir))
         from vggt.models.vggt import VGGT
         return VGGT
@@ -38,12 +37,11 @@ def load_image(path: Path, size: int = 518) -> torch.Tensor:
     left = max(0, (nw - size) // 2)
     top = max(0, (nh - size) // 2)
     img = img.crop((left, top, left + size, top + size))
-    t = T.ToTensor()(img)  # [3, H, W] in [0, 1]
+    t = T.ToTensor()(img)
     return t
 
 def run_pair(model, img_a, img_b):
-    # VGGT expects [S, 3, H, W] or [B, S, 3, H, W]
-    imgs = torch.stack([img_a, img_b], dim=0).to(DEVICE)  # [2, 3, H, W]
+    imgs = torch.stack([img_a, img_b], dim=0).to(DEVICE)
     captured = {}
     handles = []
     agg = getattr(model, "aggregator", None)
@@ -56,7 +54,7 @@ def run_pair(model, img_a, img_b):
     if hasattr(agg, "global_blocks"):
         blocks.extend(agg.global_blocks)
     if not blocks:
-        print("BLOCKER: no blocks found in aggregator")
+        print("BLOCKER: no blocks found")
         return {}
     def make_hook(idx):
         def hook(module, inp, out):
