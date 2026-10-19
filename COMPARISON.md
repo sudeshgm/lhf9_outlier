@@ -7,12 +7,19 @@
 | naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt | [0.1269, 0.1631, 0.2036, 0.1472, 0.1256, 0.1055, 0.0965, 0.0906, 0.0926, 0.1101, 0.1076, 0.0347] | no | no | no | yes |
 | yyfz233/Pi3 | [0.0179, 0.0189, 0.013, 0.0083, 0.0789] | no | yes | yes | yes |
 
-## Larger set (6 clean + 2 distractor)
+## Larger set (6 clean + 2 distractor) — feature cosine
 | Model | SEP_BY_LAYER | MONOTONIC | PEAKS_AT_FINAL |
 |-------|--------------|-----------|----------------|
 | facebook/VGGT-1B | [0.0282, 0.0611, 0.0612, 0.0642, 0.0284, 0.0596, 0.0565, 0.0582, 0.0575, 0.0469, 0.041, 0.0408, 0.0391, 0.0315, 0.023, 0.0448, 0.0422, 0.0314, 0.0229, 0.024, 0.0412, 0.0412, 0.0365, 0.0351, 0.0484, 0.0555, 0.0612, 0.0652, 0.0524, 0.0578, 0.0571, 0.0569, 0.0517, 0.0427, 0.042, 0.0365, 0.036, 0.0237, 0.0309, 0.0336, 0.0399, 0.0271, 0.0226, 0.0372, 0.0451, 0.036, 0.0288, 0.042] | no | no |
 | naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt | [0.0634, 0.1046, 0.1022, 0.109, 0.0957, 0.1046, 0.1034, 0.1062, 0.1127, 0.0678, 0.0581, 0.0571] | no | no |
 
+## Attention-mass attempt (same larger set)
+- SCORE_METHOD: mean attention mass on the distractor view (pairwise clean-distractor forward)
+- VGGT_SEP_BY_LAYER: [] (empty — blocks do not return attention weights in the forward output)
+- VGGT_MONOTONIC: yes (vacuous)
+- VGGT_PEAKS_AT_FINAL: no
+- NONVGGT: skipped
+
 ## Notes
-- Both set sizes used the same frozen mean-pooled cosine separation score.
-- Monotonic final-layer separation did not appear on either model under either set size.
+- Feature-cosine separation (both set sizes) did not show monotonic final-layer growth on VGGT or DUSt3R.
+- Attention weights are not exposed by the default forward hooks on these models.
