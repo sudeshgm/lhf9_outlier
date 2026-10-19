@@ -41,10 +41,10 @@ def load_image(path: Path, size: int = 518) -> torch.Tensor:
     mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
     std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
     t = (t - mean) / std
-    return t.unsqueeze(0)
+    return t  # [3, H, W]
 
 def run_pair(model, img_a, img_b):
-    # Pi3 expects [B, N, C, H, W]
+    # img_a, img_b are [3, H, W]
     imgs = torch.stack([img_a, img_b], dim=0).unsqueeze(0).to(DEVICE)  # [1, 2, 3, H, W]
     captured = {}
     handles = []
