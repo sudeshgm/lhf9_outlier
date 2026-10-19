@@ -40,7 +40,6 @@ def load_image(path, size=518):
 def mean_pooled_sep(feats_a, feats_b):
     seps = []
     for L in sorted(feats_a.keys()):
-        # collapse every dimension except the feature dim
         a = feats_a[L].reshape(1, -1, feats_a[L].shape[-1]).mean(dim=1)
         b = feats_b[L].reshape(1, -1, feats_b[L].shape[-1]).mean(dim=1)
         sim = F.cosine_similarity(a, b, dim=-1).mean().item()
@@ -93,8 +92,8 @@ def run_dust3r(clean_paths, dist_paths):
     for p in model.parameters(): p.requires_grad = False
 
     def run_pair(a, b):
-        va = {"img": a.to(DEVICE), "instance": [0]}
-        vb = {"img": b.to(DEVICE), "instance": [0]}
+        va = {"img": a.unsqueeze(0).to(DEVICE), "instance": [0]}
+        vb = {"img": b.unsqueeze(0).to(DEVICE), "instance": [0]}
         captured, handles = {}, []
         def hook(idx):
             def h(m, i, o):
